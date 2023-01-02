@@ -10,8 +10,11 @@ import SceneKit
 import ARKit
 
 class ViewController: UIViewController, ARSCNViewDelegate {
-
+    
     @IBOutlet var sceneView: ARSCNView!
+    
+    var dotNodes = [SCNNode]()
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,7 +22,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Set the view's delegate
         sceneView.delegate = self
         
-
+        
         sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints] //show points
     }
     
@@ -29,14 +32,13 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         if let touchLocation = touches.first?.location(in: sceneView){
             
             if let query = sceneView.raycastQuery(from: touchLocation, allowing: .estimatedPlane, alignment: .any) {
-            
-                   let hitTestResults = sceneView.session.raycast(query)
-            
-                   if let hitResult = hitTestResults.first {
-                       addDot(at: hitResult)
-                   }
-               }
-            print("A touch was detected")
+                
+                let hitTestResults = sceneView.session.raycast(query)
+                
+                if let hitResult = hitTestResults.first {
+                    addDot(at: hitResult)
+                }
+            }
         }
     }
     
@@ -57,6 +59,29 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         sceneView.scene.rootNode.addChildNode(dotNode)
         
+        dotNodes.append(dotNode)
+        
+        if dotNodes.count >= 2{
+            calculate()
+        }
+        
+    }
+    
+    func calculate (){
+        
+        //first dot
+        let start = dotNodes[0]
+        
+        //second dot
+        let end = dotNodes[1]
+        
+        let a = end.position.x - start.position.x
+        let b = end.position.y - start.position.y
+        let c = end.position.z  - start.position.z
+        
+        let distance = sqrt(pow(a, 2) + pow(b, 2) + pow(c, 2))
+        
+        print(abs(distance))
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -64,7 +89,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Create a session configuration
         let configuration = ARWorldTrackingConfiguration()
-
+        
         // Run the view's session
         sceneView.session.run(configuration)
     }
@@ -75,6 +100,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Pause the view's session
         sceneView.session.pause()
     }
-
-
+    
+    
 }
